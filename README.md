@@ -33,7 +33,7 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/YOUR_USERNAME/campus-rewards.git](https://github.com/YOUR_USERNAME/campus-rewards.git)
+git clone [https://github.com/Jeevzz-10/Campus-Coins.git](https://github.com/Jeevzz-10/Campus-Coins.git)
 cd campus-rewards
 ```
 ### 2. Install Dependencies
