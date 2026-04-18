@@ -22,3 +22,48 @@ Student participation in campus events, volunteering programs, and clubs often g
 1. **Organizers** log in via MetaMask and issue Campus Coins to a student's wallet address, attaching a "reason" (e.g., Beach Cleanup Volunteer) to the transaction.
 2. **Students** connect their wallets to view their verified on-chain balance.
 3. **Redemption:** Students interact with the smart contract to burn a specific amount of coins in exchange for campus perks.
+
+## ⚙️ Project Setup & Installation
+
+### Prerequisites
+Before you begin, ensure you have the following installed:
+* [Node.js](https://nodejs.org/) (v14 or higher)
+* [MetaMask](https://metamask.io/) browser extension
+* Python 3 (for running the local web server)
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/YOUR_USERNAME/campus-rewards.git](https://github.com/YOUR_USERNAME/campus-rewards.git)
+cd campus-rewards
+```
+### 2. Install Dependencies
+Install Hardhat and the required Node packages:
+```bash
+npm install
+```
+### 3. Start the Local Blockchain
+Run the Hardhat local node. This will generate 20 test accounts loaded with fake ETH for testing.
+```bash
+npx hardhat node
+```
+(Leave this terminal window open)
+### 4. Configure MetaMask
+Open MetaMask and add a custom network:
+* Network Name: Hardhat Local
+* RPC URL: http://127.0.0.1:8545
+* Chain ID: 31337
+* Currency Symbol: ETH
+Import at least two accounts (one for the Admin, one for a Student) by copying the Private Keys from the Hardhat terminal into MetaMask.
+### 5. Deploy the Smart Contract
+Open a second terminal in the project folder and deploy the contract to your local blockchain:
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+Note: Copy the deployed contract address from the terminal output, open index.html, and paste it into the contractAddress variable inside the <script> tag.
+
+### 6. Run the Frontend Application
+In your second terminal, start a local Python web server:
+```bash
+python3 -m http.server 8000
+```
+Open your web browser and navigate to http://localhost:8000. Connect your MetaMask wallet, and you are ready to start issuing and redeeming Campus Coins!
