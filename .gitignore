@@ -1,0 +1,14 @@
+# Node dependencies
+node_modules/
+
+# Hardhat temporary and generated files
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# Environment variables (CRITICAL SECURITY)
+.env
+
+# OS generated files
+.DS_Store

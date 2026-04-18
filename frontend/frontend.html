@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CampusCoin — Blockchain Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" type="application/javascript"></script>
+
+<style>
+/* ... (All your existing CSS remains the same) ... */
+:root {
+  --bg:      #09090b;
+  --bg2:     #111114;
+  --bg3:     #18181c;
+  --panel:   rgba(18,18,22,0.95);
+  --gold:    #f0d020;
+  --gold2:   #d4b800;
+  --acid:    #c8f000;
+  --red:     #ff4040;
+  --green:   #20e090;
+  --blue:    #40a0ff;
+  --border:  rgba(240,208,32,0.15);
+  --border2: rgba(240,208,32,0.4);
+  --text:    #e8e8e8;
+  --dim:     #606068;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(240,208,32,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(240,208,32,0.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+  z-index:0;
+}
+#connect-screen{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9000;
+}
+.connect-box{
+  border:2px solid var(--gold);
+  padding:56px 64px;
+  text-align:center;
+  max-width:480px;
+  background:var(--bg2);
+  position:relative;
+}
+.big-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:72px;letter-spacing:4px;
+  color:var(--gold);
+  line-height:1;
+}
+.logo-tag{
+  font-family:'Space Mono',monospace;
+  font-size:11px;color:var(--dim);
+  letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:40px;margin-top:4px;
+}
+.connect-btn{
+  background:var(--gold);
+  color:#000;
+  font-family:'Space Mono',monospace;
+  font-size:13px;font-weight:700;
+  letter-spacing:1px;
+  border:none;
+  padding:16px 40px;
+  cursor:pointer;
+  text-transform:uppercase;
+  width:100%;
+  transition:all 0.15s;
+}
+.connect-btn:hover{background:var(--acid);transform:translateY(-2px);}
+#app{position:relative;z-index:1;display:flex;min-height:100vh;}
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  position:fixed;top:0;left:0;height:100vh;
+  display:flex;flex-direction:column;
+  z-index:100;
+}
+.sbar-head{padding:24px 20px;border-bottom:1px solid var(--border);}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;color:var(--gold);line-height:1;}
+.wallet-chip{margin-top:14px;background:rgba(240,208,32,0.08);border:1px solid var(--border);padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);}
+.nav{padding:12px 10px;flex:1;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:500;color:var(--dim);transition:all 0.15s;border-left:2px solid transparent;margin-bottom:2px;}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(240,208,32,0.06);}
+.topbar{position:fixed;top:0;left:220px;right:0;height:52px;background:rgba(9,9,11,0.9);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:99;backdrop-filter:blur(10px);}
+.main{margin-left:220px;margin-top:52px;flex:1;padding:28px;min-height:calc(100vh - 52px);}
+.page{display:none;}
+.page.active{display:block;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;margin-bottom:28px;background:var(--border);}
+.stat{background:var(--bg2);padding:20px;position:relative;}
+.stat-n{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:var(--gold);line-height:1;margin-top:24px;}
+.panel{background:var(--bg2);border:1px solid var(--border);padding:24px;margin-bottom:20px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.15s;}
+.btn-y{background:var(--gold);color:#000;}
+#toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 18px;font-size:13px;border-left:3px solid;background:var(--bg2);max-width:340px;}
+.t-ok{border-color:var(--green);color:var(--green);}
+.t-err{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+
+<div id="connect-screen">
+  <div class="connect-box">
+    <div class="big-logo">CC</div>
+    <div class="logo-tag">Campus Coin · PoA Blockchain</div>
+    <p style="font-size:13px;color:var(--dim);margin-bottom:32px;line-height:1.7">
+      Connect your MetaMask wallet to access the<br/>
+      CampusCoin reward system on Ganache.
+    </p>
+    <button class="connect-btn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+    <div id="connect-status" style="font-size:12px;color:var(--red);margin-top:16px;"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <aside class="sidebar">
+    <div class="sbar-head">
+      <div class="brand">CAMPUS<br>COIN</div>
+      <div class="wallet-chip">
+        <div id="wallet-addr"></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="nav('dashboard',this)">Dashboard</div>
+      <div class="nav-item" onclick="nav('register',this)">Register</div>
+    </nav>
+    <div class="sbar-foot" id="chain-status">● GANACHE CONNECTED</div>
+  </aside>
+
+  <main class="main">
+    <div id="page-dashboard" class="page active">
+        <div class="panel">
+            <h2>Contract State</h2>
+            <div id="s-minted">Total Minted: Loading...</div>
+        </div>
+    </div>
+    <div id="page-register" class="page">
+        <div class="panel">
+            <h2>Register Participant</h2>
+            <input type="text" id="reg-addr" placeholder="0x..." style="width:100%; padding:10px; margin:10px 0;">
+            <input type="text" id="reg-name" placeholder="Name" style="width:100%; padding:10px; margin:10px 0;">
+            <button class="btn btn-y" onclick="doRegister()">Register</button>
+        </div>
+    </div>
+  </main>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+// IMPORTANT: Paste your address from Step 6 of your instructions here!
+const CONTRACT_ADDRESS = "0xAbCd..."; 
+
+const ABI = [
+  "function totalMinted() view returns (uint256)",
+  "function registerParticipant(address, string, uint8)",
+  "function getBalance(address) view returns (uint256)",
+  "function getStats() view returns (uint256,uint256,uint256,uint256,uint256,uint256)"
+];
+
+let provider, signer, contract, myAddress;
+
+async function connectWallet() {
+  const statusEl = document.getElementById("connect-status");
+  
+  // 1. Check if Ethers loaded
+  if (typeof ethers === "undefined") {
+    statusEl.textContent = "Error: Ethers library failed to load. Check internet connection.";
+    return;
+  }
+
+  // 2. Check MetaMask
+  if (!window.ethereum) {
+    statusEl.textContent = "MetaMask not found!";
+    return;
+  }
+
+  try {
+    // 3. Request Accounts
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+    myAddress = await signer.getAddress();
+
+    // 4. Check Network (Ganache is usually 1337 or 5777)
+    const network = await provider.getNetwork();
+    if (network.chainId !== 1337 && network.chainId !== 5777) {
+        statusEl.textContent = `Error: Connected to Chain ${network.chainId}. Switch MetaMask to Ganache (1337).`;
+        return;
+    }
+
+    // 5. Check Contract Address
+    if (CONTRACT_ADDRESS.includes("0xAbCd")) {
+        statusEl.textContent = "Error: You haven't updated the CONTRACT_ADDRESS in the script tag yet!";
+        return;
+    }
+
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+    // Show App
+    document.getElementById("connect-screen").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    document.getElementById("wallet-addr").textContent = myAddress.slice(0,6) + "..." + myAddress.slice(-4);
+    
+    loadDashboard();
+  } catch (e) {
+    statusEl.textContent = "Connection Error: " + e.message;
+  }
+}
+
+async function loadDashboard() {
+    try {
+        const stats = await contract.getStats();
+        document.getElementById("s-minted").textContent = "Total Minted: " + stats[0].toString() + " CC";
+    } catch (e) {
+        toast("Failed to load stats: " + e.message, "err");
+    }
+}
+
+function nav(id, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + id).classList.add("active");
+  el.classList.add("active");
+}
+
+function toast(msg, type = "ok") {
+  const el = document.createElement("div");
+  el.className = `toast t-${type}`;
+  el.textContent = msg;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+async function doRegister() {
+    const addr = document.getElementById("reg-addr").value;
+    const name = document.getElementById("reg-name").value;
+    try {
+        toast("Sending Transaction...", "ok");
+        const tx = await contract.registerParticipant(addr, name, 1);
+        await tx.wait();
+        toast("Successfully Registered!", "ok");
+    } catch (e) {
+        toast("Error: " + e.message, "err");
+    }
+}
+</script>
+</body>
+</html>

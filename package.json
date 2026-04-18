@@ -1,0 +1,16 @@
+{
+  "name": "campus-coin",
+  "version": "1.0.0",
+  "description": "CampusCoin Token-Based Reward System — Blockchain Project",
+  "scripts": {
+    "compile":     "npx hardhat compile",
+    "test":        "npx hardhat test",
+    "node":        "npx hardhat node",
+    "deploy:local": "npx hardhat run scripts/deploy.js --network ganache",
+    "deploy:hardhat": "npx hardhat run scripts/deploy.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  }
+}

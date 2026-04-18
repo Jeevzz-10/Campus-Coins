@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Rewards</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        input, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+
+    <h2>🎓 Campus Coin Rewards</h2>
+    <button id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+    <p>Connected Wallet: <span id="walletAddress">Not Connected</span></p>
+
+    <div class="box">
+        <h3>My Balance</h3>
+        <button onclick="checkBalance()">Check Balance</button>
+        <p>Balance: <span id="balanceDisplay">0</span> CC</p>
+    </div>
+
+    <div class="box">
+        <h3>Reward a Student (Organizers Only)</h3>
+        <input type="text" id="studentAddress" placeholder="Student MetaMask Address">
+        <input type="number" id="rewardAmount" placeholder="Amount of Coins">
+        <input type="text" id="rewardReason" placeholder="Reason (e.g., Beach Cleanup)">
+        <button onclick="rewardStudent()">Send Reward</button>
+    </div>
+
+    <div class="box">
+        <h3>Redeem Perks (Students)</h3>
+        <input type="number" id="redeemAmount" placeholder="Cost in Coins (e.g., 50)">
+        <input type="text" id="redeemPerk" placeholder="Perk (e.g., Free Coffee)">
+        <button onclick="redeemTokens()">Redeem</button>
+    </div>
+
+    <script>
+        // --- YOU WILL UPDATE THESE TWO VARIABLES IN PHASE 4 ---
+        const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+        const contractABI = [
+            // PASTE YOUR ABI HERE LATER
+            "function balances(address) view returns (uint256)",
+            "function rewardStudent(address, uint256, string)",
+            "function redeemTokens(uint256, string)"
+        ];
+
+        let provider, signer, contract;
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const address = await signer.getAddress();
+                document.getElementById("walletAddress").innerText = address;
+                
+                contract = new ethers.Contract(contractAddress, contractABI, signer);
+                alert("Wallet Connected!");
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        async function checkBalance() {
+            if (!contract) return alert("Connect wallet first!");
+            const address = await signer.getAddress();
+            const balance = await contract.balances(address);
+            document.getElementById("balanceDisplay").innerText = balance.toString();
+        }
+
+        async function rewardStudent() {
+            if (!contract) return alert("Connect wallet first!");
+            const student = document.getElementById("studentAddress").value;
+            const amount = document.getElementById("rewardAmount").value;
+            const reason = document.getElementById("rewardReason").value;
+            
+            try {
+                const tx = await contract.rewardStudent(student, amount, reason);
+                await tx.wait();
+                alert("Reward sent successfully!");
+            } catch (error) {
+                alert("Failed! Are you an authorized organizer?");
+                console.error(error);
+            }
+        }
+
+        async function redeemTokens() {
+            if (!contract) return alert("Connect wallet first!");
+            const amount = document.getElementById("redeemAmount").value;
+            const perk = document.getElementById("redeemPerk").value;
+
+            try {
+                const tx = await contract.redeemTokens(amount, perk);
+                await tx.wait();
+                alert(`Successfully redeemed for: ${perk}`);
+            } catch (error) {
+                alert("Failed! Do you have enough coins?");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
